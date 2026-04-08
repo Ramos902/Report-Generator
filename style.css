@@ -1,0 +1,66 @@
+/* Customizações e correções não cobertas pelo Tailwind */
+
+/* Evita zoom automático em inputs no iOS quando a fonte é menor que 16px */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select { 
+    font-size: 16px !important; 
+  }
+}
+
+/* Scrollbar mais limpa (Chrome/Edge/Safari) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* slate-300 */
+  border-radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-thumb {
+    background-color: #334155; /* slate-700 */
+  }
+}
+
+/* Animações do Toast de Feedback */
+.toast-enter {
+  opacity: 0;
+  transform: translateY(12px) translateX(-50%);
+}
+.toast-enter-active {
+  animation: toast-in 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.toast-leave-active {
+  animation: toast-out 200ms ease-in forwards;
+}
+
+@keyframes toast-in {
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(-50%);
+  }
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(12px) translateX(-50%);
+  }
+}
+
+/* Classes utilitárias para Tabs ativas */
+.active-tab {
+  background-color: transparent;
+  color: #2563eb; /* blue-600 */
+  border-bottom: 2px solid #2563eb;
+}
+
+@media (prefers-color-scheme: dark) {
+  .active-tab {
+    color: #60a5fa; /* blue-400 */
+    border-bottom: 2px solid #60a5fa;
+  }
+}

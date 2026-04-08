@@ -4,489 +4,123 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Relatório de Plantão – Rascunho Local</title>
-  <!-- Tailwind CSS CDN -->
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <meta name="color-scheme" content="light dark">
-  <style>
-    /* Evita zoom em inputs no iOS */
-    @supports (-webkit-touch-callout: none) {
-      input, textarea, select { font-size: 16px; }
-    }
-
-    /* Toast animation */
-    .toast-enter{opacity:0;transform:translateY(8px)}
-    .toast-enter-active{animation:toast-in 220ms ease forwards}
-    .toast-leave-active{animation:toast-out 220ms ease forwards}
-    @keyframes toast-in{to{opacity:1;transform:none}}
-    @keyframes toast-out{to{opacity:0;transform:translateY(8px)}}
-
-    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-  </style>
+  
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-zinc-50 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">
-  <div class="max-w-5xl mx-auto p-4 md:p-8">
-    <header class="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased">
+  <main class="max-w-5xl mx-auto p-4 md:p-8">
+    
+    <header class="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6 bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
       <div>
-        <h1 class="text-2xl md:text-3xl font-bold">Relatório de Plantão – Rascunho Local</h1>
-        <p class="text-sm text-zinc-500 dark:text-zinc-400">Preencha ao longo do plantão. Tudo fica salvo automaticamente no seu navegador (LocalStorage). No final, gere o relatório e copie para o GLPI.</p>
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Relatório de Plantão</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Tudo salvo automaticamente (LocalStorage). Gere o relatório e copie para o GLPI.
+        </p>
       </div>
       <div class="flex items-center gap-3">
-        <label class="text-sm" for="dataPlantao">Plantão de:</label>
-        <input id="dataPlantao" type="date" class="px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800" />
-        <button id="btnNovaData" class="px-3 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-zinc-300 dark:border-zinc-700 text-sm">Criar/Carregar data</button>
+        <label class="text-sm font-medium" for="dataPlantao">Data:</label>
+        <input id="dataPlantao" type="date" class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 shadow-inner focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+        <button id="btnNovaData" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-sm font-medium transition-colors shadow-sm">
+          Carregar
+        </button>
       </div>
     </header>
 
-    <!-- Toolbar -->
-    <div class="flex flex-wrap gap-2 mb-4">
-      <button id="btnExportarJSON" class="px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800">Exportar JSON</button>
-      <button id="btnExportarTXT" class="px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800">Exportar Relatório (.txt)</button>
-      <label class="px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 cursor-pointer">Importar JSON
+    <div class="flex flex-wrap gap-3 mb-6">
+      <button id="btnExportarJSON" class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-medium shadow-sm transition-all">📥 Exportar JSON</button>
+      <button id="btnExportarTXT" class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-medium shadow-sm transition-all">📄 Exportar Relatório (.txt)</button>
+      <label class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-medium shadow-sm cursor-pointer transition-all">
+        📂 Importar JSON
         <input id="inputImportar" type="file" accept="application/json" class="hidden" />
       </label>
-      <button id="btnLimpar" class="px-3 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white">Limpar dados da data</button>
+      <button id="btnLimpar" class="px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/40 dark:text-red-400 border border-red-200 dark:border-red-900 text-sm font-medium shadow-sm transition-all ml-auto">🗑️ Limpar Data</button>
     </div>
 
-    <!-- Tabs -->
-    <div class="mb-4 flex gap-2">
-      <button data-tab="rondas" class="tab-btn px-4 py-2 rounded-2xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">Rondas</button>
-      <button data-tab="atividades" class="tab-btn px-4 py-2 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">Atividades</button>
-      <button data-tab="relatorio" class="tab-btn px-4 py-2 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">Relatório</button>
+    <div class="mb-6 flex gap-2 overflow-x-auto pb-2 border-b border-slate-200 dark:border-slate-800">
+      <button data-tab="rondas" class="tab-btn active-tab px-5 py-2.5 rounded-t-xl font-semibold text-sm transition-all">🛡️ Rondas</button>
+      <button data-tab="atividades" class="tab-btn px-5 py-2.5 rounded-t-xl font-semibold text-sm text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-all">📋 Atividades & Chamados</button>
+      <button data-tab="relatorio" class="tab-btn px-5 py-2.5 rounded-t-xl font-semibold text-sm text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-all">✅ Gerar Relatório</button>
     </div>
 
-    <!-- Conteúdos -->
-    <section id="tab-rondas" class="tab-pane grid gap-4">
-      <div class="grid md:grid-cols-3 gap-4">
-        <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 p-4">
-          <h2 class="font-semibold mb-2">Ronda 1</h2>
-          <textarea id="ronda1" rows="8" placeholder="Descreva a Ronda 1..." class="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"></textarea>
-          <p class="text-xs text-zinc-500 mt-1">Salva automaticamente.</p>
-        </div>
-        <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 p-4">
-          <h2 class="font-semibold mb-2">Ronda 2</h2>
-          <textarea id="ronda2" rows="8" placeholder="Descreva a Ronda 2..." class="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"></textarea>
-          <p class="text-xs text-zinc-500 mt-1">Salva automaticamente.</p>
-        </div>
-        <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 p-4">
-          <h2 class="font-semibold mb-2">Ronda 3</h2>
-          <textarea id="ronda3" rows="8" placeholder="Descreva a Ronda 3..." class="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"></textarea>
-          <p class="text-xs text-zinc-500 mt-1">Salva automaticamente.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="tab-atividades" class="tab-pane hidden grid gap-6">
-      <!-- Atividades realizadas -->
-      <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-semibold">Atividades realizadas (exceções)</h2>
-          <span class="text-xs text-zinc-500">Evite rotineiras: instalação de impressoras, criação de usuários, reset de senhas, etc.</span>
-        </div>
-        <div class="flex gap-2 mb-3">
-          <input id="inputChamadoAtividade" type="text" inputmode="numeric" placeholder="Nº Chamado" class="w-36 px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"/>
-          <input id="inputAtividade" type="text" placeholder="Descreva a atividade extraordinária..." class="flex-1 px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"/>
-          <button id="btnAddAtividade" class="px-3 py-2 rounded-xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">Adicionar</button>
-        </div>
-        <ul id="listaAtividades" class="space-y-2"></ul>
-      </div>
-
-      <!-- Chamados não solucionados e justificativa -->
-      <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 p-4">
-        <h2 class="font-semibold mb-3">Chamados não solucionados e justificativa (individuais)</h2>
-        <div class="flex gap-2 mb-3">
-          <!-- Mantendo o mesmo padrão: Nº do chamado + descrição -->
-          <input id="inputChamadoNum" type="text" inputmode="numeric" placeholder="Nº Chamado" class="w-36 px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"/>
-          <input id="inputChamadoDesc" type="text" placeholder="Ex.: aguardando peça X / necessidade de acesso Y" class="flex-1 px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"/>
-          <button id="btnAddChamado" class="px-3 py-2 rounded-xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">Adicionar</button>
-        </div>
-        <ul id="listaChamados" class="space-y-2"></ul>
-      </div>
-
-      <!-- Informações relevantes para o próximo plantonista -->
-      <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 p-4">
-        <h2 class="font-semibold mb-3">Informações relevantes para o(s) próximo(s) plantonista(s)</h2>
-        <div class="flex gap-2 mb-3">
-          <input id="inputInfo" type="text" placeholder="Ex.: Servidor X reiniciado às 10:30; monitorar logs" class="flex-1 px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"/>
-          <button id="btnAddInfo" class="px-3 py-2 rounded-xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">Adicionar</button>
-        </div>
-        <ul id="listaInfos" class="space-y-2"></ul>
-      </div>
-    </section>
-
-    <section id="tab-relatorio" class="tab-pane hidden grid gap-4">
-      <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 p-4">
-        <div class="flex items-center justify-between gap-2 mb-2">
-          <h2 class="font-semibold">Relatório Gerado</h2>
-          <div class="flex gap-2">
-            <button id="btnGerar" class="px-3 py-2 rounded-xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">Gerar/Atualizar</button>
-            <button id="btnCopiar" class="px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700">Copiar</button>
+    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
+      
+      <section id="tab-rondas" class="tab-pane grid gap-6">
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="flex flex-col gap-2">
+            <h2 class="font-semibold text-slate-700 dark:text-slate-300">Ronda 1</h2>
+            <textarea id="ronda1" rows="8" placeholder="O que foi verificado na Ronda 1?" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-blue-500 outline-none resize-y transition-all"></textarea>
+          </div>
+          <div class="flex flex-col gap-2">
+            <h2 class="font-semibold text-slate-700 dark:text-slate-300">Ronda 2</h2>
+            <textarea id="ronda2" rows="8" placeholder="O que foi verificado na Ronda 2?" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-blue-500 outline-none resize-y transition-all"></textarea>
+          </div>
+          <div class="flex flex-col gap-2">
+            <h2 class="font-semibold text-slate-700 dark:text-slate-300">Ronda 3</h2>
+            <textarea id="ronda3" rows="8" placeholder="O que foi verificado na Ronda 3?" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-blue-500 outline-none resize-y transition-all"></textarea>
           </div>
         </div>
-        <textarea id="saidaRelatorio" rows="16" class="w-full px-3 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono"></textarea>
-        <p class="text-xs text-zinc-500 mt-2">Dica: após copiar, cole diretamente no formulário do GLPI.</p>
-      </div>
-    </section>
+      </section>
 
-    <footer class="mt-8 text-xs text-zinc-500">
-      <p>Funciona 100% local. Nenhum dado é enviado para a internet. • Suporta modo claro/escuro do sistema.</p>
+      <section id="tab-atividades" class="tab-pane hidden flex flex-col gap-8">
+        
+        <div>
+          <div class="mb-3">
+            <h2 class="font-semibold text-lg">Atividades Realizadas (Exceções)</h2>
+            <p class="text-xs text-slate-500">Evite tarefas de rotina (ex: reset de senha).</p>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3 mb-4">
+            <input id="inputChamadoAtividade" type="text" inputmode="numeric" placeholder="Nº Chamado" class="sm:w-40 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-blue-500 outline-none"/>
+            <input id="inputAtividade" type="text" placeholder="Descrição da atividade..." class="flex-1 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-blue-500 outline-none"/>
+            <button id="btnAddAtividade" class="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm transition-colors">Adicionar</button>
+          </div>
+          <ul id="listaAtividades" class="space-y-3"></ul>
+        </div>
+
+        <hr class="border-slate-200 dark:border-slate-800">
+
+        <div>
+          <h2 class="font-semibold text-lg mb-3">Chamados Não Solucionados</h2>
+          <div class="flex flex-col sm:flex-row gap-3 mb-4">
+            <input id="inputChamadoNum" type="text" inputmode="numeric" placeholder="Nº Chamado" class="sm:w-40 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-blue-500 outline-none"/>
+            <input id="inputChamadoDesc" type="text" placeholder="Ex: Aguardando peça..." class="flex-1 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-blue-500 outline-none"/>
+            <button id="btnAddChamado" class="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm transition-colors">Adicionar</button>
+          </div>
+          <ul id="listaChamados" class="space-y-3"></ul>
+        </div>
+
+        <hr class="border-slate-200 dark:border-slate-800">
+
+        <div>
+          <h2 class="font-semibold text-lg mb-3">Informações para o próximo plantão</h2>
+          <div class="flex flex-col sm:flex-row gap-3 mb-4">
+            <input id="inputInfo" type="text" placeholder="Ex: Servidor reiniciado às 10h, monitorar..." class="flex-1 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-blue-500 outline-none"/>
+            <button id="btnAddInfo" class="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm transition-colors">Adicionar</button>
+          </div>
+          <ul id="listaInfos" class="space-y-3"></ul>
+        </div>
+      </section>
+
+      <section id="tab-relatorio" class="tab-pane hidden flex flex-col gap-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
+          <h2 class="font-semibold text-lg">Pré-visualização do Relatório</h2>
+          <div class="flex gap-3 w-full sm:w-auto">
+            <button id="btnGerar" class="flex-1 sm:flex-none px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-medium transition-colors">🔄 Atualizar</button>
+            <button id="btnCopiar" class="flex-1 sm:flex-none px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm transition-colors">📋 Copiar Relatório</button>
+          </div>
+        </div>
+        <textarea id="saidaRelatorio" rows="18" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-y transition-all"></textarea>
+      </section>
+
+    </div>
+
+    <footer class="mt-8 text-center text-xs text-slate-500 dark:text-slate-400">
+      <p>Funciona 100% offline no navegador. Dados salvos localmente.</p>
     </footer>
-  </div>
+  </main>
 
-  <script>
-    // ======= Util =======
-    const $ = (sel) => document.querySelector(sel);
-    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
-
-    const state = {
-      chaveBase: 'plantao-',
-      get chave() { return this.chaveBase + ($('#dataPlantao').value || hojeISO()); },
-      data: {
-        dataPlantao: '',
-        rondas: { r1: '', r2: '', r3: '' },
-        atividades: [], // {id, numero, texto, criadoEm}
-        chamados: [],   // {id, numero, texto, criadoEm}
-        infos: []       // {id, texto, criadoEm}
-      }
-    };
-
-    function hojeISO(){
-      const d = new Date();
-      const off = d.getTimezoneOffset();
-      const d2 = new Date(d.getTime() - off*60*1000);
-      return d2.toISOString().slice(0,10);
-    }
-
-    // Normaliza estruturas antigas e garante campos mínimos
-    function normalizarData(obj){
-      obj.rondas = obj.rondas || {r1:'',r2:'',r3:''};
-      obj.atividades = (obj.atividades || []).map(a => {
-        if(!a) return null;
-        if(typeof a === 'string') return { id: crypto.randomUUID(), numero:'', texto: a, criadoEm: new Date().toISOString() };
-        return { id: a.id || crypto.randomUUID(), numero: (a.numero||a.num||'')+'', texto: a.texto||a.descricao||'', criadoEm: a.criadoEm || new Date().toISOString() };
-      }).filter(Boolean);
-
-      obj.chamados = (obj.chamados || []).map(a => {
-        if(!a) return null;
-        if(typeof a === 'string') return { id: crypto.randomUUID(), numero:'', texto: a, criadoEm: new Date().toISOString() };
-        return { id: a.id || crypto.randomUUID(), numero: (a.numero||a.num||'')+'', texto: a.texto||a.descricao||'', criadoEm: a.criadoEm || new Date().toISOString() };
-      }).filter(Boolean);
-
-      obj.infos = (obj.infos || []).map(a => ({ id: a.id || crypto.randomUUID(), texto: a.texto||a||'', criadoEm: a.criadoEm || new Date().toISOString() }));
-      return obj;
-    }
-
-    function salvar(){
-      state.data.dataPlantao = $('#dataPlantao').value;
-      state.data.rondas.r1 = $('#ronda1').value;
-      state.data.rondas.r2 = $('#ronda2').value;
-      state.data.rondas.r3 = $('#ronda3').value;
-      try{ localStorage.setItem(state.chave, JSON.stringify(state.data)); } catch(e){ console.error('Erro ao salvar localStorage', e); }
-    }
-
-    function carregar(){
-      const bruto = localStorage.getItem(state.chave);
-      if(bruto){
-        try { state.data = normalizarData(JSON.parse(bruto)); } catch(e) { console.error(e); }
-      }
-      // Preenche campos
-      $('#ronda1').value = state.data.rondas.r1 || '';
-      $('#ronda2').value = state.data.rondas.r2 || '';
-      $('#ronda3').value = state.data.rondas.r3 || '';
-      renderListas();
-    }
-
-    function resetarData(){
-      state.data = { dataPlantao: $('#dataPlantao').value, rondas:{r1:'',r2:'',r3:''}, atividades:[], chamados:[], infos:[] };
-      salvar();
-      carregar();
-    }
-
-    // ======= Tabs =======
-    function ativarTab(nome){
-      $$('.tab-btn').forEach(b=>{
-        const ativo = b.dataset.tab === nome;
-        b.className = 'tab-btn px-4 py-2 rounded-2xl ' + (ativo ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700');
-      });
-      $$('.tab-pane').forEach(p=>p.classList.add('hidden'));
-      const pane = $('#tab-'+nome);
-      if(pane) pane.classList.remove('hidden');
-    }
-
-    // ======= Helpers =======
-    function normalizaNumero(v){
-      return String(v || '').replace(/\D+/g,'');
-    }
-
-    function criarItem(texto){ return { id: crypto.randomUUID(), texto, criadoEm: new Date().toISOString() }; }
-    function criarAtividade(numero, texto){ return { id: crypto.randomUUID(), numero: normalizaNumero(numero), texto, criadoEm: new Date().toISOString() }; }
-
-    // ======= Render listas =======
-    function renderAtividades(){
-      const el = $('#listaAtividades'); el.innerHTML = '';
-      state.data.atividades.forEach(item=>{
-        const li = document.createElement('li');
-        li.className = 'group flex flex-col gap-2 p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900';
-
-        const row = document.createElement('div'); row.className = 'flex gap-2';
-        const num = document.createElement('input'); num.type = 'text'; num.inputMode = 'numeric'; num.placeholder = 'Nº Chamado';
-        num.className = 'w-36 px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800';
-        num.value = item.numero || '';
-        num.addEventListener('input', ()=>{ item.numero = normalizaNumero(num.value); num.value = item.numero; salvar(); });
-
-        const ta = document.createElement('textarea'); ta.className = 'flex-1 resize-y min-h-[48px] px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800';
-        ta.placeholder = 'Descreva a atividade...'; ta.value = item.texto || '';
-        ta.addEventListener('input', ()=>{ item.texto = ta.value; salvar(); });
-
-        row.appendChild(num); row.appendChild(ta);
-
-        const aside = document.createElement('div'); aside.className = 'flex items-center justify-between text-[10px] text-zinc-500';
-        const dt = document.createElement('span'); dt.textContent = new Date(item.criadoEm).toLocaleString();
-        const del = document.createElement('button'); del.className = 'px-2 py-1 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:bg-red-600 hover:text-white text-xs';
-        del.textContent = 'Excluir';
-        del.addEventListener('click', ()=>{
-          if(!confirm('Tem certeza que deseja excluir esta atividade?')) return;
-          const idx = state.data.atividades.findIndex(x=>x.id===item.id);
-          if(idx>-1){ state.data.atividades.splice(idx,1); salvar(); renderAtividades(); }
-        });
-        aside.appendChild(dt); aside.appendChild(del);
-
-        li.appendChild(row); li.appendChild(aside); el.appendChild(li);
-      });
-    }
-
-    function renderChamados(){
-      const el = $('#listaChamados'); el.innerHTML = '';
-      state.data.chamados.forEach(item=>{
-        const li = document.createElement('li');
-        li.className = 'group flex flex-col gap-2 p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900';
-
-        const row = document.createElement('div'); row.className = 'flex gap-2';
-        const num = document.createElement('input'); num.type = 'text'; num.inputMode = 'numeric'; num.placeholder = 'Nº Chamado';
-        num.className = 'w-36 px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800';
-        num.value = item.numero || '';
-        num.addEventListener('input', ()=>{ item.numero = normalizaNumero(num.value); num.value = item.numero; salvar(); });
-
-        const ta = document.createElement('textarea'); ta.className = 'flex-1 resize-y min-h-[48px] px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800';
-        ta.placeholder = 'Descreva o chamado / justificativa...'; ta.value = item.texto || '';
-        ta.addEventListener('input', ()=>{ item.texto = ta.value; salvar(); });
-
-        row.appendChild(num); row.appendChild(ta);
-
-        const aside = document.createElement('div'); aside.className = 'flex items-center justify-between text-[10px] text-zinc-500';
-        const dt = document.createElement('span'); dt.textContent = new Date(item.criadoEm).toLocaleString();
-        const del = document.createElement('button'); del.className = 'px-2 py-1 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:bg-red-600 hover:text-white text-xs';
-        del.textContent = 'Excluir';
-        del.addEventListener('click', ()=>{
-          if(!confirm('Tem certeza que deseja excluir este chamado?')) return;
-          const idx = state.data.chamados.findIndex(x=>x.id===item.id);
-          if(idx>-1){ state.data.chamados.splice(idx,1); salvar(); renderChamados(); }
-        });
-        aside.appendChild(dt); aside.appendChild(del);
-
-        li.appendChild(row); li.appendChild(aside); el.appendChild(li);
-      });
-    }
-
-    function renderInfos(){
-      const el = $('#listaInfos'); el.innerHTML = '';
-      state.data.infos.forEach(item=>{
-        const li = document.createElement('li');
-        li.className = 'group flex items-start gap-2 p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900';
-        const ta = document.createElement('textarea'); ta.className = 'flex-1 resize-y min-h-[48px] px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800';
-        ta.value = item.texto;
-        ta.addEventListener('input', () => { item.texto = ta.value; salvar(); });
-
-        const aside = document.createElement('div'); aside.className = 'flex flex-col items-end gap-2';
-        const small = document.createElement('span'); small.className = 'text-[10px] text-zinc-500'; small.textContent = new Date(item.criadoEm).toLocaleString();
-        const del = document.createElement('button'); del.className = 'px-2 py-1 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:bg-red-600 hover:text-white text-xs';
-        del.textContent = 'Excluir';
-        del.addEventListener('click', ()=>{ if(!confirm('Tem certeza que deseja excluir esta informação?')) return; const idx = state.data.infos.findIndex(x=>x.id===item.id); if(idx>-1){ state.data.infos.splice(idx,1); salvar(); renderInfos(); } });
-        aside.appendChild(small); aside.appendChild(del);
-
-        li.appendChild(ta); li.appendChild(aside); el.appendChild(li);
-      });
-    }
-
-    function renderListas(){
-      renderAtividades();
-      renderChamados();
-      renderInfos();
-    }
-
-    // ======= Relatório =======
-    function bulletsAtividades(arr){
-      if(!arr || arr.length===0) return '• (sem registros)';
-      return arr.map(x=>`• Chamado (${x.numero || 's/n'}) - ${String(x.texto || '').trim()}`).join('\n');
-    }
-    function bullets(arr){
-      if(!arr || arr.length===0) return '• (sem registros)';
-      return arr.map(x=>`• ${String(x.texto || '').trim()}`).join('\n');
-    }
-
-    function gerarRelatorio(){
-      const d = $('#dataPlantao').value || hojeISO();
-      const r1 = (state.data.rondas.r1 || '').trim();
-      const r2 = (state.data.rondas.r2 || '').trim();
-      const r3 = (state.data.rondas.r3 || '').trim();
-
-      const texto = `RELATÓRIO DE PLANTÃO – ${d}\n\n`+
-`RONDAS:\n`+
-`- Ronda 1: ${r1 || '(sem registros)'}\n`+
-`- Ronda 2: ${r2 || '(sem registros)'}\n`+
-`- Ronda 3: ${r3 || '(sem registros)'}\n\n`+
-`ATIVIDADES REALIZADAS (exceções):\n${bulletsAtividades(state.data.atividades)}\n\n`+
-`CHAMADOS NÃO SOLUCIONADOS E JUSTIFICATIVA (individuais):\n${bulletsAtividades(state.data.chamados)}\n\n`+
-`INFORMAÇÕES RELEVANTES PARA O(S) PRÓXIMO(S) PLANTONISTA(S):\n${bullets(state.data.infos)}\n`;
-
-      $('#saidaRelatorio').value = texto;
-      return texto;
-    }
-
-    async function copiarRelatorio(){
-      const txt = $('#saidaRelatorio').value || gerarRelatorio();
-      try {
-        await navigator.clipboard.writeText(txt);
-        feedback('Relatório copiado!');
-      } catch(e){
-        try{ $('#saidaRelatorio').select(); document.execCommand('copy'); feedback('Relatório copiado!'); }catch(err){ feedback('Não foi possível copiar automaticamente. Selecione e copie manualmente.'); }
-      }
-    }
-
-    // ======= Export / Import =======
-    function exportJSON(){
-      const blob = new Blob([JSON.stringify(state.data, null, 2)], {type: 'application/json'});
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-      a.download = `plantao-${$('#dataPlantao').value || hojeISO()}.json`;
-      a.click();
-    }
-
-    function exportTXT(){
-      const txt = gerarRelatorio();
-      const blob = new Blob([txt], {type: 'text/plain'});
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-      a.download = `relatorio-plantao-${$('#dataPlantao').value || hojeISO()}.txt`;
-      a.click();
-    }
-
-    // ======= Feedback toast =======
-    function feedback(msg){
-      const div = document.createElement('div');
-      div.textContent = msg;
-      div.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-lg toast-enter-active';
-      document.body.appendChild(div);
-      setTimeout(()=>{ div.classList.add('toast-leave-active'); setTimeout(()=>div.remove(),240); }, 1600);
-    }
-
-    // ======= Eventos =======
-    window.addEventListener('DOMContentLoaded', () => {
-      // Data padrão hoje
-      $('#dataPlantao').value = hojeISO();
-      // Carrega dados existentes
-      carregar();
-      salvar();
-
-      // Auto-save inputs das rondas
-      ['#ronda1','#ronda2','#ronda3'].forEach(sel=>{
-        $(sel).addEventListener('input', salvar);
-      });
-
-      // Tabs
-      $$('.tab-btn').forEach(btn=>btn.addEventListener('click', ()=>ativarTab(btn.dataset.tab)));
-
-      // Adicionar atividade
-      const inputChamadoAtividade = $('#inputChamadoAtividade');
-      const inputAtividade = $('#inputAtividade');
-      $('#btnAddAtividade').addEventListener('click', ()=>{
-        const numero = normalizaNumero(inputChamadoAtividade.value);
-        const v = inputAtividade.value.trim();
-        if(!v){ feedback('Descreva a atividade.'); inputAtividade.focus(); return; }
-        if(!numero){ feedback('Informe o número do chamado.'); inputChamadoAtividade.focus(); return; }
-        state.data.atividades.unshift(criarAtividade(numero, v));
-        inputChamadoAtividade.value = '';
-        inputAtividade.value = '';
-        salvar(); renderAtividades(); inputChamadoAtividade.focus();
-      });
-
-      // Enter para adicionar atividades (no campo descrição)
-      inputAtividade.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); $('#btnAddAtividade').click(); }});
-      inputChamadoAtividade.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); inputAtividade.focus(); }});
-
-      // Adicionar chamado não solucionado
-      const inputChamadoNum = $('#inputChamadoNum');
-      const inputChamadoDesc = $('#inputChamadoDesc');
-      $('#btnAddChamado').addEventListener('click', ()=>{
-        const numero = normalizaNumero(inputChamadoNum.value);
-        const v = inputChamadoDesc.value.trim();
-        if(!v){ feedback('Descreva a justificativa.'); inputChamadoDesc.focus(); return; }
-        if(!numero){ feedback('Informe o número do chamado.'); inputChamadoNum.focus(); return; }
-        state.data.chamados.unshift(criarAtividade(numero, v));
-        inputChamadoNum.value = '';
-        inputChamadoDesc.value = '';
-        salvar(); renderChamados(); inputChamadoNum.focus();
-      });
-      inputChamadoDesc.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); $('#btnAddChamado').click(); }});
-      inputChamadoNum.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); inputChamadoDesc.focus(); }});
-
-      // Adicionar infos
-      $('#btnAddInfo').addEventListener('click', ()=>{
-        const v = $('#inputInfo').value.trim();
-        if(!v) return feedback('Informe a informação.');
-        state.data.infos.unshift(criarItem(v));
-        $('#inputInfo').value='';
-        salvar(); renderInfos(); $('#inputInfo').focus();
-      });
-      $('#inputInfo').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); $('#btnAddInfo').click(); }});
-
-      // Relatório
-      $('#btnGerar').addEventListener('click', ()=>{ gerarRelatorio(); feedback('Relatório gerado.'); });
-      $('#btnCopiar').addEventListener('click', copiarRelatorio);
-
-      // Export / Import / Limpar
-      $('#btnExportarJSON').addEventListener('click', ()=>{ exportJSON(); feedback('JSON exportado.'); });
-      $('#btnExportarTXT').addEventListener('click', ()=>{ exportTXT(); feedback('Relatório exportado (.txt).'); });
-
-      $('#inputImportar').addEventListener('change', (e)=>{
-        const file = e.target.files?.[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = ()=>{
-          try {
-            const obj = JSON.parse(reader.result);
-            if(obj && typeof obj === 'object'){
-              state.data = normalizarData(Object.assign({dataPlantao:$('#dataPlantao').value, rondas:{r1:'',r2:'',r3:''}, atividades:[], chamados:[], infos:[]}, obj));
-              salvar(); carregar(); feedback('Dados importados!');
-            }
-          } catch(err){ console.error(err); feedback('Arquivo inválido.'); }
-        };
-        reader.readAsText(file);
-        e.target.value = '';
-      });
-
-      $('#btnLimpar').addEventListener('click', ()=>{
-        if(confirm('Tem certeza que deseja limpar todos os dados desta data?')){
-          try{ localStorage.removeItem(state.chave); }catch(e){}
-          resetarData(); feedback('Dados limpos.');
-        }
-      });
-
-      $('#btnNovaData').addEventListener('click', ()=>{ carregar(); feedback('Data carregada.'); });
-      $('#dataPlantao').addEventListener('change', ()=>{ carregar(); feedback('Data alterada.'); });
-
-      // Atalhos de teclado
-      window.addEventListener('keydown', (e)=>{
-        // Ctrl/Cmd + B -> gerar relatório
-        if((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='b'){
-          e.preventDefault(); ativarTab('relatorio'); gerarRelatorio(); feedback('Relatório atualizado (Ctrl/Cmd+B).');
-        }
-        // Ctrl/Cmd + S -> salvar
-        if((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='s'){
-          e.preventDefault(); salvar(); feedback('Salvo.');
-        }
-      });
-
-      // Inicializa primeira tab
-      ativarTab('rondas');
-    });
-  </script>
+  <script src="script.js" defer></script>
 </body>
 </html>
